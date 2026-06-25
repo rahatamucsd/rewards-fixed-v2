@@ -4,6 +4,7 @@ import com.rewards.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -49,6 +50,14 @@ public class GlobalExceptionHandler {
                 .map(v -> v.getPropertyPath() + ": " + v.getMessage())
                 .collect(Collectors.toList());
         return new ErrorResponse(400, "Validation failed", request.getRequestURI(), details);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMissingParam(MissingServletRequestParameterException ex, HttpServletRequest request) {
+        String detail = String.format("Required parameter '%s' of type %s is missing",
+                ex.getParameterName(), ex.getParameterType());
+        return new ErrorResponse(400, detail, request.getRequestURI(), null);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)

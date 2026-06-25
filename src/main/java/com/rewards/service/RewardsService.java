@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.YearMonth;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -19,54 +19,26 @@ import java.util.stream.Collectors;
 @Service
 public class RewardsService {
 
-    private static final BigDecimal LOWER_THRESHOLD = new BigDecimal("50");
-    private static final BigDecimal UPPER_THRESHOLD = new BigDecimal("100");
-    private static final int LOWER_MULTIPLIER = 1;
-    private static final int UPPER_MULTIPLIER = 2;
-
     private final TransactionRepository transactionRepository;
+    private final RewardCalculator rewardCalculator;
 
     @Autowired
-    public RewardsService(TransactionRepository transactionRepository) {
+    public RewardsService(TransactionRepository transactionRepository, RewardCalculator rewardCalculator) {
         this.transactionRepository = transactionRepository;
+        this.rewardCalculator = rewardCalculator;
     }
 
     public CustomerRewardSummary getCustomerRewards(String customerId, int months) {
         List<Transaction> transactions = transactionRepository.findByCustomerId(customerId);
         List<Transaction> filtered = filterByMonths(transactions, months);
-
         if (filtered.isEmpty()) {
             throw new CustomerNotFoundException(customerId);
         }
-        return buildSummaries(filtered).get(0);
+        return buildSummary(customerId, filtered);
     }
 
-    public int calculatePoints(BigDecimal amount) {
-        if (amount == null || amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IllegalArgumentException("Amount must be non-negative.");
-        }
-        int points = 0;
-        if (amount.compareTo(UPPER_THRESHOLD) > 0) {
-            points += amount.subtract(UPPER_THRESHOLD)
-                           .multiply(BigDecimal.valueOf(UPPER_MULTIPLIER))
-                           .intValue();
-            points += UPPER_THRESHOLD.subtract(LOWER_THRESHOLD)
-                                     .multiply(BigDecimal.valueOf(LOWER_MULTIPLIER))
-                                     .intValue();
-        } else if (amount.compareTo(LOWER_THRESHOLD) > 0) {
-            points += amount.subtract(LOWER_THRESHOLD)
-                           .multiply(BigDecimal.valueOf(LOWER_MULTIPLIER))
-                           .intValue();
-        }
-        return points;
-    }
-
-    /**
-     * Keeps transactions within the most recent {@code months} calendar months,
-     * anchored to the latest transaction date in the provided list rather than
-     * the current wall-clock date. This ensures the API returns correct results
-     * regardless of when it is run relative to the dataset's date range.
-     */
+    // Anchored to the latest transaction date, not wall-clock, so results are
+    // stable regardless of when the API is called relative to the dataset's range.
     private List<Transaction> filterByMonths(List<Transaction> all, int months) {
         if (all.isEmpty()) return all;
         LocalDate latestDate = all.stream()
@@ -79,49 +51,30 @@ public class RewardsService {
                 .collect(Collectors.toList());
     }
 
-    private List<CustomerRewardSummary> buildSummaries(List<Transaction> transactions) {
-        Map<String, List<Transaction>> byCustomer = transactions.stream()
-                .collect(Collectors.groupingBy(Transaction::getCustomerId));
+    private CustomerRewardSummary buildSummary(String customerId, List<Transaction> txns) {
+        String customerName = txns.get(0).getCustomerName();
 
-        List<CustomerRewardSummary> summaries = new ArrayList<>();
+        List<MonthlyReward> monthlyRewards = txns.stream()
+                .collect(Collectors.groupingBy(t -> YearMonth.from(t.getTransactionDate())))
+                .entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .map(e -> toMonthlyReward(e.getKey(), e.getValue()))
+                .collect(Collectors.toList());
 
-        for (Map.Entry<String, List<Transaction>> entry : byCustomer.entrySet()) {
-            List<Transaction> txns = entry.getValue();
-            String customerName = txns.get(0).getCustomerName();
+        int totalRewardPoints = monthlyRewards.stream()
+                .mapToInt(MonthlyReward::getRewardPoints)
+                .sum();
 
-            Map<String, List<Transaction>> byMonth = txns.stream()
-                    .collect(Collectors.groupingBy(t ->
-                            t.getTransactionDate().getYear() + "-" +
-                            String.format("%02d", t.getTransactionDate().getMonthValue())));
+        return new CustomerRewardSummary(customerId, customerName, monthlyRewards, totalRewardPoints);
+    }
 
-            List<MonthlyReward> monthlyRewards = byMonth.entrySet().stream()
-                    .sorted(Map.Entry.comparingByKey())
-                    .map(e -> {
-                        String[] parts = e.getKey().split("-");
-                        int year  = Integer.parseInt(parts[0]);
-                        int month = Integer.parseInt(parts[1]);
-
-                        BigDecimal totalAmount = e.getValue().stream()
-                                .map(Transaction::getAmount)
-                                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                        int rewardPoints = e.getValue().stream()
-                                .mapToInt(t -> calculatePoints(t.getAmount()))
-                                .sum();
-
-                        return new MonthlyReward(month, year, totalAmount, rewardPoints);
-                    })
-                    .collect(Collectors.toList());
-
-            int totalRewardPoints = monthlyRewards.stream()
-                    .mapToInt(MonthlyReward::getRewardPoints)
-                    .sum();
-
-            summaries.add(new CustomerRewardSummary(
-                    entry.getKey(), customerName, monthlyRewards, totalRewardPoints));
-        }
-
-        summaries.sort(Comparator.comparing(CustomerRewardSummary::getCustomerId));
-        return summaries;
+    private MonthlyReward toMonthlyReward(YearMonth ym, List<Transaction> txns) {
+        BigDecimal totalAmount = txns.stream()
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        int rewardPoints = txns.stream()
+                .mapToInt(t -> rewardCalculator.calculatePoints(t.getAmount()))
+                .sum();
+        return new MonthlyReward(ym.getMonthValue(), ym.getYear(), totalAmount, rewardPoints);
     }
 }

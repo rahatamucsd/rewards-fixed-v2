@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn test *)",
+      "Bash(./mvnw test *)",
+      "Bash(/usr/local/bin/mvn test *)",
+      "Bash(\"/Applications/IntelliJ IDEA CE.app/Contents/plugins/maven/lib/maven3/bin/mvn\" test)"
+    ]
+  }
+}

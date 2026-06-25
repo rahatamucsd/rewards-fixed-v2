@@ -8,9 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
-import java.util.List;
-
 @RestController
 @RequestMapping("/api/rewards")
 @Validated
@@ -24,11 +21,10 @@ public class RewardsController {
     }
 
     @GetMapping
-    public ResponseEntity<List<CustomerRewardSummary>> getRewards(
+    public ResponseEntity<CustomerRewardSummary> getRewards(
             @RequestParam String customerId,
             @RequestParam(defaultValue = "3") @Min(1) int months) {
 
-        return ResponseEntity.ok(Collections.singletonList(
-                rewardsService.getCustomerRewards(customerId, months)));
+        return ResponseEntity.ok(rewardsService.getCustomerRewards(customerId, months));
     }
 }

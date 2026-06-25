@@ -91,29 +91,27 @@ GET /api/rewards?customerId={id}&months={n}
 ### Examples
 
 ```
-GET /api/rewards?customerId=C001          → one-element array, last 3 months
-GET /api/rewards?customerId=C001&months=2 → one-element array, last 2 months
+GET /api/rewards?customerId=C001          → single object, last 3 months
+GET /api/rewards?customerId=C001&months=2 → single object, last 2 months
 ```
 
 ---
 
 ## Response Schema
 
-### `200 OK` — always a one-element JSON array
+### `200 OK`
 
 ```json
-[
-  {
-    "customerId": "C001",
-    "customerName": "Alice Johnson",
-    "monthlyRewards": [
-      { "month": 1, "year": 2024, "totalAmount": 395.00, "rewardPoints": 365 },
-      { "month": 2, "year": 2024, "totalAmount": 263.00, "rewardPoints": 148 },
-      { "month": 3, "year": 2024, "totalAmount": 235.00, "rewardPoints": 210 }
-    ],
-    "totalRewardPoints": 723
-  }
-]
+{
+  "customerId": "C001",
+  "customerName": "Alice Johnson",
+  "monthlyRewards": [
+    { "month": 1, "year": 2024, "totalAmount": 395.00, "rewardPoints": 365 },
+    { "month": 2, "year": 2024, "totalAmount": 263.00, "rewardPoints": 148 },
+    { "month": 3, "year": 2024, "totalAmount": 235.00, "rewardPoints": 210 }
+  ],
+  "totalRewardPoints": 723
+}
 ```
 
 ### Error — `4xx / 5xx`

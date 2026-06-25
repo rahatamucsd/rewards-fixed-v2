@@ -10,13 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -42,23 +39,26 @@ class RewardsControllerTest {
     // ── GET /api/rewards?customerId=C001 — missing customerId → 400 ──────────
 
     @Test
-    void missingCustomerId_returns400() throws Exception {
+    void missingCustomerId_returns400WithErrorBody() throws Exception {
         mockMvc.perform(get("/api/rewards"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("Required parameter 'customerId' of type String is missing"))
+                .andExpect(jsonPath("$.path").value("/api/rewards"));
     }
 
     // ── GET /api/rewards?customerId=C001 — single customer response ──────────
 
     @Test
-    void getOneCustomer_returns200AsOneElementArray() throws Exception {
+    void getOneCustomer_returns200() throws Exception {
         CustomerRewardSummary summary = buildSummary("C001", "Alice Johnson");
         when(rewardsService.getCustomerRewards("C001", 3)).thenReturn(summary);
 
         mockMvc.perform(get("/api/rewards?customerId=C001"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].customerId").value("C001"))
-                .andExpect(jsonPath("$[0].customerName").value("Alice Johnson"))
-                .andExpect(jsonPath("$[0].totalRewardPoints").value(723));
+                .andExpect(jsonPath("$.customerId").value("C001"))
+                .andExpect(jsonPath("$.customerName").value("Alice Johnson"))
+                .andExpect(jsonPath("$.totalRewardPoints").value(723));
     }
 
     @Test
@@ -91,14 +91,14 @@ class RewardsControllerTest {
 
     @Test
     void invalidMonths_zero_returns400() throws Exception {
-        mockMvc.perform(get("/api/rewards?months=0"))
+        mockMvc.perform(get("/api/rewards?customerId=C001&months=0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
     }
 
     @Test
     void invalidMonths_string_returns400() throws Exception {
-        mockMvc.perform(get("/api/rewards?months=abc"))
+        mockMvc.perform(get("/api/rewards?customerId=C001&months=abc"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
     }

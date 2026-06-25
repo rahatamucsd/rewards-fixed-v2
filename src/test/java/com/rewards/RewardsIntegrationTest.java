@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -18,27 +17,29 @@ class RewardsIntegrationTest {
     private MockMvc mockMvc;
 
     @Test
-    void missingCustomerId_returns400() throws Exception {
+    void missingCustomerId_returns400WithErrorBody() throws Exception {
         mockMvc.perform(get("/api/rewards"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("Required parameter 'customerId' of type String is missing"))
+                .andExpect(jsonPath("$.path").value("/api/rewards"));
     }
 
     @Test
-    void getSingleCustomer_alice_returnsOneElementArray() throws Exception {
+    void getSingleCustomer_alice_returns200() throws Exception {
         mockMvc.perform(get("/api/rewards?customerId=C001"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].customerId").value("C001"))
-                .andExpect(jsonPath("$[0].customerName").value("Alice Johnson"))
-                .andExpect(jsonPath("$[0].totalRewardPoints").value(723))
-                .andExpect(jsonPath("$[0].monthlyRewards.length()").value(3));
+                .andExpect(jsonPath("$.customerId").value("C001"))
+                .andExpect(jsonPath("$.customerName").value("Alice Johnson"))
+                .andExpect(jsonPath("$.totalRewardPoints").value(723))
+                .andExpect(jsonPath("$.monthlyRewards.length()").value(3));
     }
 
     @Test
     void getSingleCustomer_months2_returnsOnlyTwoMonths() throws Exception {
         mockMvc.perform(get("/api/rewards?customerId=C001&months=2"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].monthlyRewards.length()").value(2));
+                .andExpect(jsonPath("$.monthlyRewards.length()").value(2));
     }
 
     @Test
@@ -51,7 +52,7 @@ class RewardsIntegrationTest {
 
     @Test
     void invalidMonths_returns400() throws Exception {
-        mockMvc.perform(get("/api/rewards?months=0"))
+        mockMvc.perform(get("/api/rewards?customerId=C001&months=0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
     }
