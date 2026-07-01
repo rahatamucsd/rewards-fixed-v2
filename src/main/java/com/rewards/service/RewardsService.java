@@ -33,7 +33,7 @@ public class RewardsService {
 
     public CustomerRewardSummary getCustomerRewards(String customerId, int months) {
         log.debug("Resolving rewards for customerId={} months={}", customerId, months);
-        // Anchor to the latest transaction date so results are stable for this dataset.
+        
         LocalDate latest = transactionRepository.findMaxDateByCustomerId(customerId)
                 .orElseThrow(() -> {
                     log.warn("No transactions found for customerId={}", customerId);
