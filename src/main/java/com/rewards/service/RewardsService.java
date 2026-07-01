@@ -5,6 +5,8 @@ import com.rewards.dto.MonthlyReward;
 import com.rewards.entity.Transaction;
 import com.rewards.exception.CustomerNotFoundException;
 import com.rewards.repository.TransactionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,8 @@ import java.util.stream.Collectors;
 @Service
 public class RewardsService {
 
+    private static final Logger log = LoggerFactory.getLogger(RewardsService.class);
+
     private final TransactionRepository transactionRepository;
     private final RewardCalculator rewardCalculator;
 
@@ -28,11 +32,17 @@ public class RewardsService {
     }
 
     public CustomerRewardSummary getCustomerRewards(String customerId, int months) {
+        log.debug("Resolving rewards for customerId={} months={}", customerId, months);
         // Anchor to the latest transaction date so results are stable for this dataset.
         LocalDate latest = transactionRepository.findMaxDateByCustomerId(customerId)
-                .orElseThrow(() -> new CustomerNotFoundException(customerId));
+                .orElseThrow(() -> {
+                    log.warn("No transactions found for customerId={}", customerId);
+                    return new CustomerNotFoundException(customerId);
+                });
         LocalDate cutoff = latest.withDayOfMonth(1).minusMonths(months - 1);
+        log.debug("Date window for customerId={}: {} to {}", customerId, cutoff, latest);
         List<Transaction> transactions = transactionRepository.findByCustomerIdFromDate(customerId, cutoff);
+        log.debug("Fetched {} transactions for customerId={}", transactions.size(), customerId);
         return buildSummary(customerId, transactions);
     }
 
