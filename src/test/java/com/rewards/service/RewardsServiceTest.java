@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
@@ -36,6 +37,12 @@ class RewardsServiceTest {
 
     // ── Test data ──────────────────────────────────────────────────────────────
 
+    private static final LocalDate ALICE_MAX  = LocalDate.of(2024, 3, 25);
+    private static final LocalDate BOB_MAX    = LocalDate.of(2024, 3, 29);
+    private static final LocalDate CAROL_MAX  = LocalDate.of(2024, 3, 30);
+    private static final LocalDate DAVID_MAX  = LocalDate.of(2024, 3, 20);
+    private static final LocalDate CUTOFF_3M  = LocalDate.of(2024, 1,  1); // months=3 from any March-2024 max
+
     private static final List<Transaction> ALICE = Arrays.asList(
         txn("T001","C001","Alice Johnson", 2024,1,5,  "120.00"),
         txn("T002","C001","Alice Johnson", 2024,1,18,  "75.00"),
@@ -43,6 +50,11 @@ class RewardsServiceTest {
         txn("T004","C001","Alice Johnson", 2024,2,3,   "45.00"),
         txn("T005","C001","Alice Johnson", 2024,2,14, "130.00"),
         txn("T006","C001","Alice Johnson", 2024,2,22,  "88.00"),
+        txn("T007","C001","Alice Johnson", 2024,3,10, "175.00"),
+        txn("T008","C001","Alice Johnson", 2024,3,25,  "60.00")
+    );
+
+    private static final List<Transaction> ALICE_MARCH = Arrays.asList(
         txn("T007","C001","Alice Johnson", 2024,3,10, "175.00"),
         txn("T008","C001","Alice Johnson", 2024,3,25,  "60.00")
     );
@@ -82,11 +94,16 @@ class RewardsServiceTest {
                 LocalDate.of(y, m, d), new BigDecimal(amount));
     }
 
+    private void stubCustomer(String id, LocalDate max, List<Transaction> rows) {
+        when(transactionRepository.findMaxDateByCustomerId(id)).thenReturn(Optional.of(max));
+        when(transactionRepository.findByCustomerIdFromDate(id, CUTOFF_3M)).thenReturn(rows);
+    }
+
     // ── Alice Johnson (C001) ───────────────────────────────────────────────────
 
     @Test
     void alice_januaryPoints_shouldBe365() {
-        when(transactionRepository.findByCustomerCustomerId("C001")).thenReturn(ALICE);
+        stubCustomer("C001", ALICE_MAX, ALICE);
         int jan = rewardsService.getCustomerRewards("C001", 3).getMonthlyRewards().stream()
                 .filter(m -> m.getMonth() == 1 && m.getYear() == 2024)
                 .mapToInt(MonthlyReward::getRewardPoints).sum();
@@ -95,7 +112,7 @@ class RewardsServiceTest {
 
     @Test
     void alice_februaryPoints_shouldBe148() {
-        when(transactionRepository.findByCustomerCustomerId("C001")).thenReturn(ALICE);
+        stubCustomer("C001", ALICE_MAX, ALICE);
         int feb = rewardsService.getCustomerRewards("C001", 3).getMonthlyRewards().stream()
                 .filter(m -> m.getMonth() == 2 && m.getYear() == 2024)
                 .mapToInt(MonthlyReward::getRewardPoints).sum();
@@ -104,7 +121,7 @@ class RewardsServiceTest {
 
     @Test
     void alice_marchPoints_shouldBe210() {
-        when(transactionRepository.findByCustomerCustomerId("C001")).thenReturn(ALICE);
+        stubCustomer("C001", ALICE_MAX, ALICE);
         int mar = rewardsService.getCustomerRewards("C001", 3).getMonthlyRewards().stream()
                 .filter(m -> m.getMonth() == 3 && m.getYear() == 2024)
                 .mapToInt(MonthlyReward::getRewardPoints).sum();
@@ -113,7 +130,7 @@ class RewardsServiceTest {
 
     @Test
     void alice_totalRewardPoints_shouldBe723() {
-        when(transactionRepository.findByCustomerCustomerId("C001")).thenReturn(ALICE);
+        stubCustomer("C001", ALICE_MAX, ALICE);
         assertEquals(723, rewardsService.getCustomerRewards("C001", 3).getTotalRewardPoints());
     }
 
@@ -121,7 +138,7 @@ class RewardsServiceTest {
 
     @Test
     void bob_januaryPoints_shouldBe475() {
-        when(transactionRepository.findByCustomerCustomerId("C002")).thenReturn(BOB);
+        stubCustomer("C002", BOB_MAX, BOB);
         int jan = rewardsService.getCustomerRewards("C002", 3).getMonthlyRewards().stream()
                 .filter(m -> m.getMonth() == 1)
                 .mapToInt(MonthlyReward::getRewardPoints).sum();
@@ -130,7 +147,7 @@ class RewardsServiceTest {
 
     @Test
     void bob_februaryPoints_shouldBe195() {
-        when(transactionRepository.findByCustomerCustomerId("C002")).thenReturn(BOB);
+        stubCustomer("C002", BOB_MAX, BOB);
         int feb = rewardsService.getCustomerRewards("C002", 3).getMonthlyRewards().stream()
                 .filter(m -> m.getMonth() == 2)
                 .mapToInt(MonthlyReward::getRewardPoints).sum();
@@ -139,7 +156,7 @@ class RewardsServiceTest {
 
     @Test
     void bob_marchPoints_shouldBe370() {
-        when(transactionRepository.findByCustomerCustomerId("C002")).thenReturn(BOB);
+        stubCustomer("C002", BOB_MAX, BOB);
         int mar = rewardsService.getCustomerRewards("C002", 3).getMonthlyRewards().stream()
                 .filter(m -> m.getMonth() == 3)
                 .mapToInt(MonthlyReward::getRewardPoints).sum();
@@ -148,7 +165,7 @@ class RewardsServiceTest {
 
     @Test
     void bob_totalRewardPoints_shouldBe1040() {
-        when(transactionRepository.findByCustomerCustomerId("C002")).thenReturn(BOB);
+        stubCustomer("C002", BOB_MAX, BOB);
         assertEquals(1040, rewardsService.getCustomerRewards("C002", 3).getTotalRewardPoints());
     }
 
@@ -156,7 +173,7 @@ class RewardsServiceTest {
 
     @Test
     void carol_januaryPoints_shouldBe70() {
-        when(transactionRepository.findByCustomerCustomerId("C003")).thenReturn(CAROL);
+        stubCustomer("C003", CAROL_MAX, CAROL);
         int jan = rewardsService.getCustomerRewards("C003", 3).getMonthlyRewards().stream()
                 .filter(m -> m.getMonth() == 1)
                 .mapToInt(MonthlyReward::getRewardPoints).sum();
@@ -165,7 +182,7 @@ class RewardsServiceTest {
 
     @Test
     void carol_februaryPoints_shouldBe365() {
-        when(transactionRepository.findByCustomerCustomerId("C003")).thenReturn(CAROL);
+        stubCustomer("C003", CAROL_MAX, CAROL);
         int feb = rewardsService.getCustomerRewards("C003", 3).getMonthlyRewards().stream()
                 .filter(m -> m.getMonth() == 2)
                 .mapToInt(MonthlyReward::getRewardPoints).sum();
@@ -174,7 +191,7 @@ class RewardsServiceTest {
 
     @Test
     void carol_marchPoints_shouldBe170() {
-        when(transactionRepository.findByCustomerCustomerId("C003")).thenReturn(CAROL);
+        stubCustomer("C003", CAROL_MAX, CAROL);
         int mar = rewardsService.getCustomerRewards("C003", 3).getMonthlyRewards().stream()
                 .filter(m -> m.getMonth() == 3)
                 .mapToInt(MonthlyReward::getRewardPoints).sum();
@@ -183,7 +200,7 @@ class RewardsServiceTest {
 
     @Test
     void carol_totalRewardPoints_shouldBe605() {
-        when(transactionRepository.findByCustomerCustomerId("C003")).thenReturn(CAROL);
+        stubCustomer("C003", CAROL_MAX, CAROL);
         assertEquals(605, rewardsService.getCustomerRewards("C003", 3).getTotalRewardPoints());
     }
 
@@ -191,7 +208,7 @@ class RewardsServiceTest {
 
     @Test
     void david_januaryPoints_shouldBe850() {
-        when(transactionRepository.findByCustomerCustomerId("C004")).thenReturn(DAVID);
+        stubCustomer("C004", DAVID_MAX, DAVID);
         int jan = rewardsService.getCustomerRewards("C004", 3).getMonthlyRewards().stream()
                 .filter(m -> m.getMonth() == 1)
                 .mapToInt(MonthlyReward::getRewardPoints).sum();
@@ -202,7 +219,9 @@ class RewardsServiceTest {
 
     @Test
     void months_1_shouldReturnOnlyMostRecentMonth() {
-        when(transactionRepository.findByCustomerCustomerId("C001")).thenReturn(ALICE);
+        LocalDate cutoff = LocalDate.of(2024, 3, 1);
+        when(transactionRepository.findMaxDateByCustomerId("C001")).thenReturn(Optional.of(ALICE_MAX));
+        when(transactionRepository.findByCustomerIdFromDate("C001", cutoff)).thenReturn(ALICE_MARCH);
         CustomerRewardSummary alice = rewardsService.getCustomerRewards("C001", 1);
         assertEquals(1, alice.getMonthlyRewards().size());
         assertEquals(3, alice.getMonthlyRewards().get(0).getMonth());
@@ -212,8 +231,7 @@ class RewardsServiceTest {
 
     @Test
     void unknownCustomer_shouldThrowCustomerNotFoundException() {
-        when(transactionRepository.findByCustomerCustomerId("UNKNOWN"))
-                .thenReturn(Collections.emptyList());
+        when(transactionRepository.findMaxDateByCustomerId("UNKNOWN")).thenReturn(Optional.empty());
         assertThrows(CustomerNotFoundException.class,
                 () -> rewardsService.getCustomerRewards("UNKNOWN", 3));
     }

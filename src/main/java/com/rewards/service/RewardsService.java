@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,26 +28,12 @@ public class RewardsService {
     }
 
     public CustomerRewardSummary getCustomerRewards(String customerId, int months) {
-        List<Transaction> transactions = transactionRepository.findByCustomerCustomerId(customerId);
-        List<Transaction> filtered = filterByMonths(transactions, months);
-        if (filtered.isEmpty()) {
-            throw new CustomerNotFoundException(customerId);
-        }
-        return buildSummary(customerId, filtered);
-    }
-
-    // Anchored to the latest transaction date, not wall-clock, so results are
-    // stable regardless of when the API is called relative to the dataset's range.
-    private List<Transaction> filterByMonths(List<Transaction> all, int months) {
-        if (all.isEmpty()) return all;
-        LocalDate latestDate = all.stream()
-                .map(Transaction::getTransactionDate)
-                .max(Comparator.naturalOrder())
-                .orElse(LocalDate.now());
-        LocalDate cutoff = latestDate.withDayOfMonth(1).minusMonths(months - 1);
-        return all.stream()
-                .filter(t -> !t.getTransactionDate().isBefore(cutoff))
-                .collect(Collectors.toList());
+        // Anchor to the latest transaction date so results are stable for this dataset.
+        LocalDate latest = transactionRepository.findMaxDateByCustomerId(customerId)
+                .orElseThrow(() -> new CustomerNotFoundException(customerId));
+        LocalDate cutoff = latest.withDayOfMonth(1).minusMonths(months - 1);
+        List<Transaction> transactions = transactionRepository.findByCustomerIdFromDate(customerId, cutoff);
+        return buildSummary(customerId, transactions);
     }
 
     private CustomerRewardSummary buildSummary(String customerId, List<Transaction> txns) {
