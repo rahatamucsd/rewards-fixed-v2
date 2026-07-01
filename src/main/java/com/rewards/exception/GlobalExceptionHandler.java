@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(404, ex.getMessage(), request.getRequestURI(), null);
     }
 
-    // Spring 6.1+ raises HandlerMethodValidationException for @RequestParam constraints
+    
     @ExceptionHandler(HandlerMethodValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleHandlerMethodValidation(HandlerMethodValidationException ex, HttpServletRequest request) {
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(400, "Validation failed", request.getRequestURI(), details);
     }
 
-    // Retained for service-layer constraint violations (programmatic or @Service-level @Validated)
+    
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
