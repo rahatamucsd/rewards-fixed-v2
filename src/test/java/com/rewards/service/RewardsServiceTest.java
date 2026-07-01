@@ -2,6 +2,7 @@ package com.rewards.service;
 
 import com.rewards.dto.CustomerRewardSummary;
 import com.rewards.dto.MonthlyReward;
+import com.rewards.entity.Customer;
 import com.rewards.entity.Transaction;
 import com.rewards.exception.CustomerNotFoundException;
 import com.rewards.repository.TransactionRepository;
@@ -77,7 +78,7 @@ class RewardsServiceTest {
 
     private static Transaction txn(String id, String custId, String name,
                                     int y, int m, int d, String amount) {
-        return new Transaction(id, custId, name,
+        return new Transaction(id, new Customer(custId, name),
                 LocalDate.of(y, m, d), new BigDecimal(amount));
     }
 

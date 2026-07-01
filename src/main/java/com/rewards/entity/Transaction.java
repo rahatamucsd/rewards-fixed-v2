@@ -1,9 +1,6 @@
 package com.rewards.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -16,11 +13,9 @@ public class Transaction {
     @Column(name = "transaction_id")
     private String transactionId;
 
-    @Column(name = "customer_id", nullable = false)
-    private String customerId;
-
-    @Column(name = "customer_name", nullable = false)
-    private String customerName;
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
 
     @Column(name = "transaction_date", nullable = false)
     private LocalDate transactionDate;
@@ -30,11 +25,10 @@ public class Transaction {
 
     public Transaction() {}
 
-    public Transaction(String transactionId, String customerId, String customerName,
+    public Transaction(String transactionId, Customer customer,
                        LocalDate transactionDate, BigDecimal amount) {
         this.transactionId = transactionId;
-        this.customerId = customerId;
-        this.customerName = customerName;
+        this.customer = customer;
         this.transactionDate = transactionDate;
         this.amount = amount;
     }
@@ -42,11 +36,8 @@ public class Transaction {
     public String getTransactionId() { return transactionId; }
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
 
-    public String getCustomerId() { return customerId; }
-    public void setCustomerId(String customerId) { this.customerId = customerId; }
-
-    public String getCustomerName() { return customerName; }
-    public void setCustomerName(String customerName) { this.customerName = customerName; }
+    public Customer getCustomer() { return customer; }
+    public void setCustomer(Customer customer) { this.customer = customer; }
 
     public LocalDate getTransactionDate() { return transactionDate; }
     public void setTransactionDate(LocalDate transactionDate) { this.transactionDate = transactionDate; }

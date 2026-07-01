@@ -29,7 +29,7 @@ public class RewardsService {
     }
 
     public CustomerRewardSummary getCustomerRewards(String customerId, int months) {
-        List<Transaction> transactions = transactionRepository.findByCustomerId(customerId);
+        List<Transaction> transactions = transactionRepository.findByCustomerCustomerId(customerId);
         List<Transaction> filtered = filterByMonths(transactions, months);
         if (filtered.isEmpty()) {
             throw new CustomerNotFoundException(customerId);
@@ -52,7 +52,7 @@ public class RewardsService {
     }
 
     private CustomerRewardSummary buildSummary(String customerId, List<Transaction> txns) {
-        String customerName = txns.get(0).getCustomerName();
+        String customerName = txns.get(0).getCustomer().getCustomerName();
 
         List<MonthlyReward> monthlyRewards = txns.stream()
                 .collect(Collectors.groupingBy(t -> YearMonth.from(t.getTransactionDate())))
