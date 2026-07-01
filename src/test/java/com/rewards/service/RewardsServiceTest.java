@@ -35,7 +35,7 @@ class RewardsServiceTest {
         rewardsService = new RewardsService(transactionRepository, new RewardCalculator());
     }
 
-    // ── Test data ──────────────────────────────────────────────────────────────
+    
 
     private static final LocalDate ALICE_MAX  = LocalDate.of(2024, 3, 25);
     private static final LocalDate BOB_MAX    = LocalDate.of(2024, 3, 29);
@@ -99,7 +99,7 @@ class RewardsServiceTest {
         when(transactionRepository.findByCustomerIdFromDate(id, CUTOFF_3M)).thenReturn(rows);
     }
 
-    // ── Alice Johnson (C001) ───────────────────────────────────────────────────
+    
 
     @Test
     void alice_januaryPoints_shouldBe365() {
@@ -134,7 +134,7 @@ class RewardsServiceTest {
         assertEquals(723, rewardsService.getCustomerRewards("C001", 3).getTotalRewardPoints());
     }
 
-    // ── Bob Martinez (C002) ───────────────────────────────────────────────────
+    
 
     @Test
     void bob_januaryPoints_shouldBe475() {
@@ -169,7 +169,7 @@ class RewardsServiceTest {
         assertEquals(1040, rewardsService.getCustomerRewards("C002", 3).getTotalRewardPoints());
     }
 
-    // ── Carol Smith (C003) ────────────────────────────────────────────────────
+    
 
     @Test
     void carol_januaryPoints_shouldBe70() {
@@ -204,7 +204,7 @@ class RewardsServiceTest {
         assertEquals(605, rewardsService.getCustomerRewards("C003", 3).getTotalRewardPoints());
     }
 
-    // ── David Lee (C004) ──────────────────────────────────────────────────────
+    
 
     @Test
     void david_januaryPoints_shouldBe850() {
@@ -215,7 +215,7 @@ class RewardsServiceTest {
         assertEquals(850, jan);
     }
 
-    // ── months filter ─────────────────────────────────────────────────────────
+    
 
     @Test
     void months_1_shouldReturnOnlyMostRecentMonth() {
@@ -227,7 +227,7 @@ class RewardsServiceTest {
         assertEquals(3, alice.getMonthlyRewards().get(0).getMonth());
     }
 
-    // ── Not found ─────────────────────────────────────────────────────────────
+    
 
     @Test
     void unknownCustomer_shouldThrowCustomerNotFoundException() {
