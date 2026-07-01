@@ -36,7 +36,7 @@ class RewardsControllerTest {
         return new CustomerRewardSummary(id, name, Arrays.asList(jan, feb, mar), 723);
     }
 
-    // ── GET /api/rewards?customerId=C001 — missing customerId → 400 ──────────
+    
 
     @Test
     void missingCustomerId_returns400WithErrorBody() throws Exception {
@@ -47,7 +47,7 @@ class RewardsControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/rewards"));
     }
 
-    // ── GET /api/rewards?customerId=C001 — single customer response ──────────
+    
 
     @Test
     void getOneCustomer_returns200() throws Exception {
@@ -72,7 +72,7 @@ class RewardsControllerTest {
         verify(rewardsService).getCustomerRewards("C001", 2);
     }
 
-    // ── Error: customer not found → 404 ──────────────────────────────────────
+    
 
     @Test
     void unknownCustomer_returns404WithNewSchema() throws Exception {
@@ -87,7 +87,7 @@ class RewardsControllerTest {
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
-    // ── Error: invalid months → 400 ───────────────────────────────────────────
+    
 
     @Test
     void invalidMonths_zero_returns400() throws Exception {
@@ -110,7 +110,7 @@ class RewardsControllerTest {
                 .andExpect(jsonPath("$.code").value(400));
     }
 
-    // ── /points endpoint is removed ───────────────────────────────────────────
+    
 
     @Test
     void pointsEndpoint_shouldNotExist_returns404() throws Exception {
