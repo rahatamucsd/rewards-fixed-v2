@@ -103,6 +103,13 @@ class RewardsControllerTest {
                 .andExpect(jsonPath("$.code").value(400));
     }
 
+    @Test
+    void invalidMonths_tooLarge_returns400() throws Exception {
+        mockMvc.perform(get("/api/rewards?customerId=C001&months=13"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400));
+    }
+
     // ── /points endpoint is removed ───────────────────────────────────────────
 
     @Test

@@ -2,6 +2,7 @@ package com.rewards.controller;
 
 import com.rewards.dto.CustomerRewardSummary;
 import com.rewards.service.RewardsService;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class RewardsController {
     @GetMapping
     public ResponseEntity<CustomerRewardSummary> getRewards(
             @RequestParam String customerId,
-            @RequestParam(defaultValue = "3") @Min(1) int months) {
+            @RequestParam(defaultValue = "3") @Min(1) @Max(12) int months) {
 
         return ResponseEntity.ok(rewardsService.getCustomerRewards(customerId, months));
     }
