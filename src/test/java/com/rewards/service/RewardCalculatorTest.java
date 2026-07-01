@@ -10,7 +10,7 @@ class RewardCalculatorTest {
 
     private final RewardCalculator calculator = new RewardCalculator();
 
-    // ── At and below lower threshold ──────────────────────────────────────────
+    
 
     @Test
     void points_49_99_shouldBeZero() {
@@ -22,7 +22,7 @@ class RewardCalculatorTest {
         assertEquals(0, calculator.calculatePoints(new BigDecimal("50.00")));
     }
 
-    // ── Above lower threshold ─────────────────────────────────────────────────
+    
 
     @Test
     void points_50_01_shouldBeZero() {
@@ -39,7 +39,7 @@ class RewardCalculatorTest {
         assertEquals(25, calculator.calculatePoints(new BigDecimal("75.00")));
     }
 
-    // ── At and above upper threshold ──────────────────────────────────────────
+    
 
     @Test
     void points_exactlyHundred_shouldBe50() {
@@ -56,7 +56,7 @@ class RewardCalculatorTest {
         assertEquals(52, calculator.calculatePoints(new BigDecimal("101.00")));
     }
 
-    // ── Standard examples ─────────────────────────────────────────────────────
+    
 
     @Test
     void points_120_shouldBe90() {
@@ -73,7 +73,7 @@ class RewardCalculatorTest {
         assertEquals(850, calculator.calculatePoints(new BigDecimal("500.00")));
     }
 
-    // ── Edge cases ────────────────────────────────────────────────────────────
+    
 
     @Test
     void points_zero_shouldBeZero() {
