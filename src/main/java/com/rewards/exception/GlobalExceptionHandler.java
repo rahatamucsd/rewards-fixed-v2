@@ -28,15 +28,12 @@ public class GlobalExceptionHandler {
         log.warn("404 No handler: {} {}", ex.getHttpMethod(), ex.getRequestURL());
         return new ErrorResponse(404, "No endpoint: " + ex.getHttpMethod() + " " + ex.getRequestURL(), request.getRequestURI(), null);
     }
-
     @ExceptionHandler(CustomerNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleCustomerNotFound(CustomerNotFoundException ex, HttpServletRequest request) {
         log.warn("404 {}", ex.getMessage());
         return new ErrorResponse(404, ex.getMessage(), request.getRequestURI(), null);
     }
-
-    
     @ExceptionHandler(HandlerMethodValidationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleHandlerMethodValidation(HandlerMethodValidationException ex, HttpServletRequest request) {
@@ -48,8 +45,6 @@ public class GlobalExceptionHandler {
         log.warn("400 Validation failed on {}: {}", request.getRequestURI(), details);
         return new ErrorResponse(400, "Validation failed", request.getRequestURI(), details);
     }
-
-    
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleConstraintViolation(ConstraintViolationException ex, HttpServletRequest request) {
@@ -59,7 +54,6 @@ public class GlobalExceptionHandler {
         log.warn("400 Constraint violation on {}: {}", request.getRequestURI(), details);
         return new ErrorResponse(400, "Validation failed", request.getRequestURI(), details);
     }
-
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMissingParam(MissingServletRequestParameterException ex, HttpServletRequest request) {
@@ -68,7 +62,6 @@ public class GlobalExceptionHandler {
         log.warn("400 Missing parameter on {}: {}", request.getRequestURI(), detail);
         return new ErrorResponse(400, detail, request.getRequestURI(), null);
     }
-
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleTypeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
@@ -77,14 +70,12 @@ public class GlobalExceptionHandler {
         log.warn("400 Type mismatch on {}: {}", request.getRequestURI(), msg);
         return new ErrorResponse(400, msg, request.getRequestURI(), null);
     }
-
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
         log.warn("400 Illegal argument on {}: {}", request.getRequestURI(), ex.getMessage());
         return new ErrorResponse(400, ex.getMessage(), request.getRequestURI(), null);
     }
-
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ErrorResponse handleGeneric(Exception ex, HttpServletRequest request) {

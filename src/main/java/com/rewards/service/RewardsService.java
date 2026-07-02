@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -21,7 +20,6 @@ import java.util.stream.Collectors;
 public class RewardsService {
 
     private static final Logger log = LoggerFactory.getLogger(RewardsService.class);
-
     private final TransactionRepository transactionRepository;
     private final RewardCalculator rewardCalculator;
 
@@ -33,7 +31,6 @@ public class RewardsService {
 
     public CustomerRewardSummary getCustomerRewards(String customerId, int months) {
         log.debug("Resolving rewards for customerId={} months={}", customerId, months);
-        
         LocalDate latest = transactionRepository.findMaxDateByCustomerId(customerId)
                 .orElseThrow(() -> {
                     log.warn("No transactions found for customerId={}", customerId);
@@ -48,21 +45,17 @@ public class RewardsService {
 
     private CustomerRewardSummary buildSummary(String customerId, List<Transaction> txns) {
         String customerName = txns.get(0).getCustomer().getCustomerName();
-
         List<MonthlyReward> monthlyRewards = txns.stream()
                 .collect(Collectors.groupingBy(t -> YearMonth.from(t.getTransactionDate())))
                 .entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .map(e -> toMonthlyReward(e.getKey(), e.getValue()))
                 .collect(Collectors.toList());
-
         int totalRewardPoints = monthlyRewards.stream()
                 .mapToInt(MonthlyReward::getRewardPoints)
                 .sum();
-
         return new CustomerRewardSummary(customerId, customerName, monthlyRewards, totalRewardPoints);
     }
-
     private MonthlyReward toMonthlyReward(YearMonth ym, List<Transaction> txns) {
         BigDecimal totalAmount = txns.stream()
                 .map(Transaction::getAmount)
