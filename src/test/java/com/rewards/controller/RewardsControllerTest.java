@@ -11,10 +11,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
-
 import java.math.BigDecimal;
 import java.util.Arrays;
-
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -36,8 +34,6 @@ class RewardsControllerTest {
         return new CustomerRewardSummary(id, name, Arrays.asList(jan, feb, mar), 723);
     }
 
-    
-
     @Test
     void missingCustomerId_returns400WithErrorBody() throws Exception {
         mockMvc.perform(get("/api/rewards"))
@@ -46,8 +42,6 @@ class RewardsControllerTest {
                 .andExpect(jsonPath("$.message").value("Required parameter 'customerId' of type String is missing"))
                 .andExpect(jsonPath("$.path").value("/api/rewards"));
     }
-
-    
 
     @Test
     void getOneCustomer_returns200() throws Exception {
@@ -72,8 +66,6 @@ class RewardsControllerTest {
         verify(rewardsService).getCustomerRewards("C001", 2);
     }
 
-    
-
     @Test
     void unknownCustomer_returns404WithNewSchema() throws Exception {
         when(rewardsService.getCustomerRewards("UNKNOWN", 3))
@@ -86,8 +78,6 @@ class RewardsControllerTest {
                 .andExpect(jsonPath("$.path").exists())
                 .andExpect(jsonPath("$.timestamp").exists());
     }
-
-    
 
     @Test
     void invalidMonths_zero_returns400() throws Exception {
@@ -109,8 +99,6 @@ class RewardsControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
     }
-
-    
 
     @Test
     void pointsEndpoint_shouldNotExist_returns404() throws Exception {
